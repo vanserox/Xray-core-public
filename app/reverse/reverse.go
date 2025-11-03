@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	internalDomain = "reverse"
+	internalDomain = "-"
 )
 
 func isDomain(dest net.Destination, domain string) bool {
