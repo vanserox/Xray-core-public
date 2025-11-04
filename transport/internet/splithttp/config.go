@@ -2,7 +2,6 @@ package splithttp
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/xtls/xray-core/common"
