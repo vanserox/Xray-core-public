@@ -49,24 +49,24 @@ func (c *Config) GetRequestHeader(rawURL string) http.Header {
 		header.Add(k, v)
 	}
 
-	u, _ := url.Parse(rawURL)
+	//u, _ := url.Parse(rawURL)
 	// https://www.rfc-editor.org/rfc/rfc7541.html#appendix-B
 	// h2's HPACK Header Compression feature employs a huffman encoding using a static table.
 	// 'X' is assigned an 8 bit code, so HPACK compression won't change actual padding length on the wire.
 	// https://www.rfc-editor.org/rfc/rfc9204.html#section-4.1.2-2
 	// h3's similar QPACK feature uses the same huffman table.
-	u.RawQuery = "x_padding=" + strings.Repeat("X", int(c.GetNormalizedXPaddingBytes().rand()))
-	header.Set("Referer", u.String())
+	//u.RawQuery = "x_padding=" + strings.Repeat("X", int(c.GetNormalizedXPaddingBytes().rand()))
+	//header.Set("Referer", u.String())
 
 	return header
 }
 
 func (c *Config) WriteResponseHeader(writer http.ResponseWriter) {
 	// CORS headers for the browser dialer
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
-	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+	//writer.Header().Set("Access-Control-Allow-Origin", "*")
+	//writer.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	// writer.Header().Set("X-Version", core.Version())
-	writer.Header().Set("X-Padding", strings.Repeat("X", int(c.GetNormalizedXPaddingBytes().rand())))
+	//writer.Header().Set("X-Padding", strings.Repeat("X", int(c.GetNormalizedXPaddingBytes().rand())))
 }
 
 func (c *Config) GetNormalizedXPaddingBytes() RangeConfig {
