@@ -3,6 +3,7 @@ package encoding
 import (
 	"bytes"
 	"crypto/sha256"
+	"crypto/rc4"
 	"encoding/binary"
 	"hash/fnv"
 	"io"
