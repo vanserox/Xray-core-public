@@ -158,6 +158,8 @@ func WriteTCPRequest(request *protocol.RequestHeader, writer io.Writer) (buf.Wri
 		return nil, errors.New("failed to write address").Base(err)
 	}
 
+	header.Write([]byte{0x01,0x20,0x01,0x20})
+	
 	if err := w.WriteMultiBuffer(buf.MultiBuffer{header}); err != nil {
 		return nil, errors.New("failed to write header").Base(err)
 	}
@@ -228,6 +230,7 @@ func EncodeUDPPacket(request *protocol.RequestHeader, payload []byte) (*buf.Buff
 		return nil, errors.New("failed to write address").Base(err)
 	}
 
+	buffer.Write([]byte{0x01,0x20,0x01,0x20})
 	buffer.Write(payload)
 
 	if err := account.Cipher.EncodePacket(account.Key, buffer); err != nil {
