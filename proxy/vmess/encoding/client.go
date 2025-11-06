@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/rc4"
 	"encoding/binary"
 	"hash/fnv"
 	"io"
@@ -129,7 +130,10 @@ func (c *ClientSession) EncodeRequestBody(request *protocol.RequestHeader, write
 			return crypto.NewAuthenticationWriter(auth, sizeParser, writer, protocol.TransferTypePacket, padding), nil
 		}
 
-		return buf.NewWriter(writer), nil
+		stream, err := rc4.NewCipher(c.requestBodyKey[:])
+		common.Must(err)
+
+		return crypto.NewCryptionWriter(stream, writer), nil
 	case protocol.SecurityType_AES128_GCM:
 		aead := crypto.NewAesGcm(c.requestBodyKey[:])
 		auth := &crypto.AEADAuthenticator{
@@ -282,7 +286,10 @@ func (c *ClientSession) DecodeResponseBody(request *protocol.RequestHeader, read
 			return crypto.NewAuthenticationReader(auth, sizeParser, reader, protocol.TransferTypePacket, padding), nil
 		}
 
-		return buf.NewReader(reader), nil
+		stream, err := rc4.NewCipher(c.responseBodyKey[:])
+		common.Must(err)
+
+		return buf.NewReader(crypto.NewCryptionReader(stream, reader)), nil
 	case protocol.SecurityType_AES128_GCM:
 		aead := crypto.NewAesGcm(c.responseBodyKey[:])
 
