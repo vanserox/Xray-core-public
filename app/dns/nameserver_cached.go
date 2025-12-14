@@ -138,9 +138,7 @@ func merge(option dns.IPOption, rec4 *IPRecord, rec6 *IPRecord, errs ...error) (
 		if !mergeReq || go_errors.Is(err, errRecordNotFound) {
 			return ips, ttl, err
 		}
-		if ttl < rTTL {
-			rTTL = ttl
-		}
+		rTTL = ttl
 		if len(ips) > 0 {
 			allIPs = append(allIPs, ips...)
 		} else {
@@ -153,9 +151,7 @@ func merge(option dns.IPOption, rec4 *IPRecord, rec6 *IPRecord, errs ...error) (
 		if !mergeReq || go_errors.Is(err, errRecordNotFound) {
 			return ips, ttl, err
 		}
-		if ttl < rTTL {
-			rTTL = ttl
-		}
+		rTTL = ttl
 		if len(ips) > 0 {
 			allIPs = append(allIPs, ips...)
 		} else {
