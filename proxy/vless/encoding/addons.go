@@ -2,10 +2,13 @@ package encoding
 
 import (
 	"context"
+	"crypto/rc4"
 	"io"
 	"net"
 
+	"github.com/xtls/xray-core/common"
 	"github.com/xtls/xray-core/common/buf"
+	"github.com/xtls/xray-core/common/crypto"
 	"github.com/xtls/xray-core/common/errors"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/common/session"
@@ -65,16 +68,42 @@ func DecodeHeaderAddons(buffer *buf.Buffer, reader io.Reader) (*Addons, error) {
 // EncodeBodyAddons returns a Writer that auto-encrypt content written by caller.
 func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, requestAddons *Addons, state *proxy.TrafficState, isUplink bool, context context.Context, conn net.Conn, ob *session.Outbound) buf.Writer {
 	if request.Command == protocol.RequestCommandUDP {
+		if proxy.IsRAWTransportWithoutSecurity(conn) {
+			stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
+			common.Must(err)
+			if ob != nil {
+				ob.CanSpliceCopy = 3
+			}
+			errors.LogInfo(context, "rc4 udp enc")
+			writer = crypto.NewCryptionWriter(stream, writer.(io.Writer))
+		}
 		return NewMultiLengthPacketWriter(writer)
 	}
 	if requestAddons.Flow == vless.XRV {
 		return proxy.NewVisionWriter(writer, state, isUplink, context, conn, ob, request.User.Account.(*vless.MemoryAccount).Testseed)
 	}
+	if proxy.IsRAWTransportWithoutSecurity(conn) {
+		stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
+		common.Must(err)
+		if ob != nil {
+			ob.CanSpliceCopy = 3
+		}
+		errors.LogInfo(context, "rc4 enc")
+		writer = crypto.NewCryptionWriter(stream, writer.(io.Writer))
+	}
 	return writer
 }
 
 // DecodeBodyAddons returns a Reader from which caller can fetch decrypted body.
-func DecodeBodyAddons(reader io.Reader, request *protocol.RequestHeader, addons *Addons) buf.Reader {
+func DecodeBodyAddons(reader io.Reader, request *protocol.RequestHeader, addons *Addons, conn net.Conn, ib *session.Inbound) buf.Reader {
+	if proxy.IsRAWTransportWithoutSecurity(conn) {
+		stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
+		common.Must(err)
+		if ib != nil {
+			ib.CanSpliceCopy = 3
+		}
+		reader = crypto.NewCryptionReader(stream, reader)
+	}
 	switch addons.Flow {
 	default:
 		if request.Command == protocol.RequestCommandUDP {

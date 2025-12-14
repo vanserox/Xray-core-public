@@ -609,7 +609,7 @@ func (h *Handler) Process(ctx context.Context, network net.Network, connection s
 	}
 
 	trafficState := proxy.NewTrafficState(userSentID)
-	clientReader := encoding.DecodeBodyAddons(reader, request, requestAddons)
+	clientReader := encoding.DecodeBodyAddons(reader, request, requestAddons, connection, inbound)
 	if requestAddons.Flow == vless.XRV {
 		clientReader = proxy.NewVisionReader(clientReader, trafficState, true, ctx, connection, input, rawInput, nil)
 	}
