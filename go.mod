@@ -13,7 +13,7 @@ require (
 	github.com/pires/go-proxyproto v0.8.1
 	github.com/quic-go/quic-go v0.57.1
 	github.com/refraction-networking/utls v1.8.1
-	github.com/sagernet/sing v0.5.1
+	github.com/sagernet/sing v0.7.14
 	github.com/sagernet/sing-shadowsocks v0.2.7
 	github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771
 	github.com/stretchr/testify v1.11.1
@@ -37,7 +37,6 @@ require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-metro v0.0.0-20200812162917-85c65e2d0165 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/juju/ratelimit v1.0.2 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
