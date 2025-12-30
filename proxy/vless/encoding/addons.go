@@ -68,13 +68,13 @@ func DecodeHeaderAddons(buffer *buf.Buffer, reader io.Reader) (*Addons, error) {
 // EncodeBodyAddons returns a Writer that auto-encrypt content written by caller.
 func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, requestAddons *Addons, state *proxy.TrafficState, isUplink bool, context context.Context, conn net.Conn, ob *session.Outbound) buf.Writer {
 	if request.Command == protocol.RequestCommandUDP {
-		if proxy.IsRAWTransportWithoutSecurity(conn) {
+		if !proxy.IsRAWTransportWithoutSecurity(conn) {
 			stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
 			common.Must(err)
 			if ob != nil {
 				ob.CanSpliceCopy = 3
 			}
-			errors.LogInfo(context, "rc4 udp enc")
+			errors.LogDebug(context, "rc4 udp enc")
 			writer = crypto.NewCryptionWriter(stream, writer.(io.Writer))
 		}
 		return NewMultiLengthPacketWriter(writer)
@@ -82,13 +82,13 @@ func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, reques
 	if requestAddons.Flow == vless.XRV {
 		return proxy.NewVisionWriter(writer, state, isUplink, context, conn, ob, request.User.Account.(*vless.MemoryAccount).Testseed)
 	}
-	if proxy.IsRAWTransportWithoutSecurity(conn) {
+	if !proxy.IsRAWTransportWithoutSecurity(conn) {
 		stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
 		common.Must(err)
 		if ob != nil {
 			ob.CanSpliceCopy = 3
 		}
-		errors.LogInfo(context, "rc4 enc")
+		errors.LogDebug(context, "rc4 enc")
 		writer = crypto.NewCryptionWriter(stream, writer.(io.Writer))
 	}
 	return writer
@@ -96,7 +96,7 @@ func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, reques
 
 // DecodeBodyAddons returns a Reader from which caller can fetch decrypted body.
 func DecodeBodyAddons(reader io.Reader, request *protocol.RequestHeader, addons *Addons, conn net.Conn, ib *session.Inbound) buf.Reader {
-	if proxy.IsRAWTransportWithoutSecurity(conn) {
+	if !proxy.IsRAWTransportWithoutSecurity(conn) {
 		stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
 		common.Must(err)
 		if ib != nil {
