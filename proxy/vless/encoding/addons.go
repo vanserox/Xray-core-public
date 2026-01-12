@@ -14,6 +14,7 @@ import (
 	"github.com/xtls/xray-core/common/session"
 	"github.com/xtls/xray-core/proxy"
 	"github.com/xtls/xray-core/proxy/vless"
+	"github.com/xtls/xray-core/transport/internet/headers/http"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -67,8 +68,9 @@ func DecodeHeaderAddons(buffer *buf.Buffer, reader io.Reader) (*Addons, error) {
 
 // EncodeBodyAddons returns a Writer that auto-encrypt content written by caller.
 func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, requestAddons *Addons, state *proxy.TrafficState, isUplink bool, context context.Context, conn net.Conn, ob *session.Outbound) buf.Writer {
+	_, isObfs := conn.(*http.Conn)
 	if request.Command == protocol.RequestCommandUDP {
-		if !proxy.IsRAWTransportWithoutSecurity(conn) {
+		if isObfs {
 			stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
 			common.Must(err)
 			if ob != nil {
@@ -82,7 +84,7 @@ func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, reques
 	if requestAddons.Flow == vless.XRV {
 		return proxy.NewVisionWriter(writer, state, isUplink, context, conn, ob, request.User.Account.(*vless.MemoryAccount).Testseed)
 	}
-	if !proxy.IsRAWTransportWithoutSecurity(conn) {
+	if isObfs {
 		stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
 		common.Must(err)
 		if ob != nil {
@@ -96,7 +98,8 @@ func EncodeBodyAddons(writer buf.Writer, request *protocol.RequestHeader, reques
 
 // DecodeBodyAddons returns a Reader from which caller can fetch decrypted body.
 func DecodeBodyAddons(reader io.Reader, request *protocol.RequestHeader, addons *Addons, conn net.Conn, ib *session.Inbound) buf.Reader {
-	if !proxy.IsRAWTransportWithoutSecurity(conn) {
+	_, isObfs := conn.(*http.Conn)
+	if isObfs {
 		stream, err := rc4.NewCipher(request.User.Account.(*vless.MemoryAccount).ID.Bytes())
 		common.Must(err)
 		if ib != nil {
