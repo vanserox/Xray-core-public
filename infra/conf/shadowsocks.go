@@ -54,10 +54,11 @@ type ShadowsocksServerConfig struct {
 	Email       string                   `json:"email"`
 	Users       []*ShadowsocksUserConfig `json:"clients"`
 	NetworkList *NetworkList             `json:"network"`
-	IVCheck     bool                     `json:"ivCheck"`
 }
 
 func (v *ShadowsocksServerConfig) Build() (proto.Message, error) {
+	errors.PrintNonRemovalDeprecatedFeatureWarning("Shadowsocks (with no Forward Secrecy, etc.)", "VLESS Encryption")
+
 	if C.Contains(shadowaead_2022.List, v.Cipher) {
 		return buildShadowsocks2022(v)
 	}
@@ -70,7 +71,6 @@ func (v *ShadowsocksServerConfig) Build() (proto.Message, error) {
 			account := &shadowsocks.Account{
 				Password:   user.Password,
 				CipherType: cipherFromString(user.Cipher),
-				IvCheck:    v.IVCheck,
 			}
 			if account.Password == "" {
 				return nil, errors.New("Shadowsocks password is not specified.")
@@ -89,7 +89,6 @@ func (v *ShadowsocksServerConfig) Build() (proto.Message, error) {
 		account := &shadowsocks.Account{
 			Password:   v.Password,
 			CipherType: cipherFromString(v.Cipher),
-			IvCheck:    v.IVCheck,
 		}
 		if account.Password == "" {
 			return nil, errors.New("Shadowsocks password is not specified.")
@@ -174,7 +173,6 @@ type ShadowsocksServerTarget struct {
 	Email      string   `json:"email"`
 	Cipher     string   `json:"method"`
 	Password   string   `json:"password"`
-	IVCheck    bool     `json:"ivCheck"`
 	UoT        bool     `json:"uot"`
 	UoTVersion int      `json:"uotVersion"`
 }
@@ -186,13 +184,14 @@ type ShadowsocksClientConfig struct {
 	Email      string                     `json:"email"`
 	Cipher     string                     `json:"method"`
 	Password   string                     `json:"password"`
-	IVCheck    bool                       `json:"ivCheck"`
 	UoT        bool                       `json:"uot"`
 	UoTVersion int                        `json:"uotVersion"`
 	Servers    []*ShadowsocksServerTarget `json:"servers"`
 }
 
 func (v *ShadowsocksClientConfig) Build() (proto.Message, error) {
+	errors.PrintNonRemovalDeprecatedFeatureWarning("Shadowsocks (with no Forward Secrecy, etc.)", "VLESS Encryption")
+
 	if v.Address != nil {
 		v.Servers = []*ShadowsocksServerTarget{
 			{
@@ -202,7 +201,6 @@ func (v *ShadowsocksClientConfig) Build() (proto.Message, error) {
 				Email:      v.Email,
 				Cipher:     v.Cipher,
 				Password:   v.Password,
-				IVCheck:    v.IVCheck,
 				UoT:        v.UoT,
 				UoTVersion: v.UoTVersion,
 			},
@@ -258,12 +256,10 @@ func (v *ShadowsocksClientConfig) Build() (proto.Message, error) {
 			return nil, errors.New("unknown cipher method: ", server.Cipher)
 		}
 
-		account.IvCheck = server.IVCheck
-
 		ss := &protocol.ServerEndpoint{
 			Address: server.Address.Build(),
 			Port:    uint32(server.Port),
-			User:    &protocol.User{
+			User: &protocol.User{
 				Level:   uint32(server.Level),
 				Email:   server.Email,
 				Account: serial.ToTypedMessage(account),
