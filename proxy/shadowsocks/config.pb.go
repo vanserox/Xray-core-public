@@ -27,6 +27,10 @@ type CipherType int32
 
 const (
 	CipherType_UNKNOWN            CipherType = 0
+	CipherType_AES_128_CFB        CipherType = 1
+	CipherType_AES_256_CFB        CipherType = 2
+	CipherType_CHACHA20           CipherType = 3
+	CipherType_CHACHA20_IETF      CipherType = 4
 	CipherType_AES_128_GCM        CipherType = 5
 	CipherType_AES_256_GCM        CipherType = 6
 	CipherType_CHACHA20_POLY1305  CipherType = 7
@@ -38,6 +42,10 @@ const (
 var (
 	CipherType_name = map[int32]string{
 		0: "UNKNOWN",
+		1: "AES_128_CFB",
+		2: "AES_256_CFB",
+		3: "CHACHA20",
+		4: "CHACHA20_IETF",
 		5: "AES_128_GCM",
 		6: "AES_256_GCM",
 		7: "CHACHA20_POLY1305",
@@ -46,6 +54,10 @@ var (
 	}
 	CipherType_value = map[string]int32{
 		"UNKNOWN":            0,
+		"AES_128_CFB":        1,
+		"AES_256_CFB":        2,
+		"CHACHA20":           3,
+		"CHACHA20_IETF":      4,
 		"AES_128_GCM":        5,
 		"AES_256_GCM":        6,
 		"CHACHA20_POLY1305":  7,
